@@ -8,8 +8,8 @@ PARENT_DIR=`readlink -f ${DIR}/..`;
 CHIPSET_NAME=msm8976
 ARCH=arm64
 
-BUILD_CROSS_COMPILE=$PARENT_DIR/aarch64-linux-android-4.9/bin/aarch64-linux-android-
-KERNEL_MAKE_ENV="LOCALVERSION=-adil-da-cu"
+CROSS_COMPILE=$PARENT_DIR/aarch64-linux-android-4.9/bin/aarch64-linux-android-
+KERNEL_MAKE_ENV="LOCALVERSION=-play4noobwin"
 
 DTS_DIR=$(pwd)/out/arch/$ARCH/boot/dts
 
@@ -59,8 +59,8 @@ toolchain(){
 
 clean(){
   echo "${GREEN}***** Cleaning in Progress *****${STD}";
-  make -j$(nproc) ARCH=arm64 clean 
-  make -j$(nproc) ARCH=arm64 mrproper
+  make -j$(nproc) CROSS_COMPILE=$CROSS_COMPILE ARCH=arm64 clean 
+  make -j$(nproc)  CROSS_COMPILE=$CROSS_COMPILE ARCH=arm64 mrproper
   [ -d "out" ] && rm -rf out
   echo "${GREEN}***** Cleaning Done *****${STD}";
   pause 'continue'
@@ -70,12 +70,13 @@ build(){
   variant
   echo "${GREEN}***** Compiling kernel *****${STD}"
   [ ! -d "out" ] && mkdir out
-  make -j$(nproc) -C $(pwd) O=$(pwd)/out $KERNEL_MAKE_ENV ARCH=arm64 CROSS_COMPILE=$BUILD_CROSS_COMPILE lineage_${VARIANT}_defconfig
-  time make -j$(nproc) -C $(pwd) O=$(pwd)/out $KERNEL_MAKE_ENV ARCH=arm64 CROSS_COMPILE=$BUILD_CROSS_COMPILE
+  make -j$(nproc) O=out/ ARCH=arm64 CROSS_COMPILE=$CROSS_COMPILE lineage_${VARIANT}_defconfig
+  time make -j$(nproc) O=out/ ARCH=arm64 CROSS_COMPILE=$CROSS_COMPILE 
 
   [ -e out/arch/arm64/boot/Image.gz ] && cp out/arch/arm64/boot/Image.gz $(pwd)/out/Image.gz
   if [ -e out/arch/arm64/boot/Image.gz-dtb ]; then
     cp out/arch/arm64/boot/Image.gz-dtb $(pwd)/out/Image.gz-dtb
+
     echo "${GREEN}***** Ready to Roar *****${STD}";
     pause 'continue'
   else
@@ -83,8 +84,31 @@ build(){
   fi
 }
 
+anykernel3(){
+  if [ ! -d $PARENT_DIR/AnyKernel3 ]; then
+    pause 'clone AnyKernel3 - Flashable Zip Template'
+    git clone https://github.com/Play4NoobWin/AnyKernel3.git $PARENT_DIR/AnyKernel3
+  fi
+  variant
+  [ -e $PARENT_DIR/${VARIANT}_kernel.zip ] && rm $PARENT_DIR/${VARIANT}_kernel.zip
+  if [ -e out/arch/arm64/boot/Image.gz-dtb ]; then
+    cp out/arch/arm64/boot/Image.gz-dtb $PARENT_DIR/AnyKernel3/zImage
+  elif [ -e out/arch/arm64/boot/Image.gz ]; then
+    cp out/arch/arm64/boot/Image.gz $PARENT_DIR/AnyKernel3/zImage
+  else
+    pause 'return to Main menu' 'Build kernel first, '
+  fi
+  cd $PARENT_DIR/AnyKernel3
+  git reset --hard
+  sed -i "s/ExampleKernel by osm0sis/${VARIANT} kernel by alien-x and Play4noobwin/g" anykernel.sh
+  zip -r9 $PARENT_DIR/${VARIANT}_kernel.zip * -x .git README.md *placeholder
+  cd $DIR
+  pause 'continue'
+}
+
 # Run once
 toolchain
+llvm
 
 # Show menu
 show_menus() {
@@ -103,6 +127,7 @@ read_options(){
   case $choice in
     1|b|B) build ;;
     2|c|C) clean ;;
+    3|f|F) anykernel3;;
     4|x|X) exit 0;;
     *) pause 'return to Main menu' 'Invalid option, '
   esac
