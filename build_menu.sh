@@ -91,16 +91,8 @@ anykernel3(){
   fi
   variant
   [ -e $PARENT_DIR/${VARIANT}_kernel.zip ] && rm $PARENT_DIR/${VARIANT}_kernel.zip
-  if [ -e out/arch/arm64/boot/Image.gz-dtb ]; then
-    cp out/arch/arm64/boot/Image.gz-dtb $PARENT_DIR/AnyKernel3/zImage
-  elif [ -e out/arch/arm64/boot/Image.gz ]; then
-    cp out/arch/arm64/boot/Image.gz $PARENT_DIR/AnyKernel3/zImage
-  else
-    pause 'return to Main menu' 'Build kernel first, '
-  fi
+    cp out/arch/arm64/boot/Image.gz-dtb $PARENT_DIR/AnyKernel3/Image.gz-dtb
   cd $PARENT_DIR/AnyKernel3
-  git reset --hard
-  sed -i "s/ExampleKernel by osm0sis/${VARIANT} kernel by alien-x and Play4noobwin/g" anykernel.sh
   zip -r9 $PARENT_DIR/${VARIANT}_kernel.zip * -x .git README.md *placeholder
   cd $DIR
   pause 'continue'
