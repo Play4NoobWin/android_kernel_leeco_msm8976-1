@@ -9,7 +9,7 @@ CHIPSET_NAME=msm8976
 ARCH=arm64
 
 CROSS_COMPILE=$PARENT_DIR/aarch64-linux-android-4.9/bin/aarch64-linux-android-
-KERNEL_MAKE_ENV="LOCALVERSION=-play4noobwin"
+KERNEL_MAKE_ENV="LOCALVERSION=-SiameseCat"
 
 DTS_DIR=$(pwd)/out/arch/$ARCH/boot/dts
 
